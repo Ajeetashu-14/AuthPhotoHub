@@ -1,0 +1,44 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>user info</h1>
+    <h3 id="userInfo">
+    </h3>
+
+    <script>
+        const searchParams = new URLSearchParams(window.location.search);
+        const username = searchParams.get('username');
+        const jwtToken = localStorage.getItem('jwtToken');
+        console.log("before fetch of info.html")
+        fetch(`http://localhost:3000/user?username=${username}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(function (response) {
+                console.log("after fetch of info.html and in response part")
+                response.json()
+                    .then(function (data) {
+                        console.log(data)
+                        const userData = document.getElementById('userInfo');
+                        userData.innerHTML = `<p>Username: ${data.username}</p>`;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while fetching user information.');
+                    });
+            })
+
+    </script>
+
+</body>
+
+</html>

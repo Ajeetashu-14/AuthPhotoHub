@@ -1,0 +1,53 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlinkIt Assignment</title>
+
+    <script>
+        function myFunction() {
+            console.log("entered myFunction")
+            const username = document.getElementById("username").value
+            const password = document.getElementById("password").value
+
+            if(username.length==0 || password.length==0){
+                alert("Fields can't be empty")
+                return;
+            }
+            console.log("before fetch of signin")
+            fetch('http://localhost:3000/user/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            })
+                .then(function(response){
+                    console.log("after fetch of signin and in response part")
+                    response.json()
+                        .then(function(result){
+                            if(result.token){
+                                console.log("after fetch of signin and in result part")
+                                alert("Sign In successfull")
+                                localStorage.setItem('jwtToken',result.token)
+                                window.location.href = `http://localhost:3000/user/info.html?username=${username}`;
+                            }
+                            else{
+                                alert("Sign in failed")
+                            }
+                        })
+                })
+                
+        }
+    </script>
+</head>
+
+<body>
+    <input id="username" type="text" placeholder="username"> <br> </br>
+    <input id="password" type="password" placeholder="password"> <br> </br>
+    <button id="btn" onclick="myFunction()">Sign In</button>
+
+</body>
+
+</html>
