@@ -31,7 +31,7 @@
                                 console.log("after fetch of signin and in result part")
                                 alert("Sign In successfull")
                                 localStorage.setItem('jwtToken',result.token)
-                                window.location.href = `http://localhost:3000/user/info.html?username=${username}`;
+                                window.location.href = "info.html";
                             }
                             else{
                                 alert("Sign in failed")

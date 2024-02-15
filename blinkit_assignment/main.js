@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { Middleware,check} = require("./middleware/auth");
+const { Middleware, check } = require("./middleware/auth");
 const router = Router();
 const multer = require('multer');
 const { User, Img } = require("./db")
@@ -8,7 +8,16 @@ const { jwt_secret } = require("./config")
 const fs = require('fs');
 const path = require('path');
 
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'uploads'));
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    },
+});
+
+const upload = multer({ storage: storage });
 
 router.post('/signup', check, (req, res) => {
     const { username, password } = req.body;
@@ -55,34 +64,21 @@ router.post('/signin', (req, res) => {
 
 router.post('/upload', Middleware, upload.single('image'), async (req, res) => {
     try {
+        const filePath=path.join(__dirname + 'uploads' + req.file.filename);
         const newImage = new Img({
             name: req.body.name,
             img: {
-                data: fs.readFileSync(path.join(__dirname + '/uploads/' + req.file.filename)),
+                data: fs.readFileSync(filePath),
                 contentType: 'image/png'
             }
         });
         await newImage.save();
-        res.send('Image uploaded successfully');
+        res.json({
+            msg:"Successfully uploaded"
+        });    
     } catch (error) {
         res.status(400).send(error.message);
     }
-});
-router.get('/:username', async (req, res) => {
-    console.log("entered get username")
-    const username = req.query.username;
-    console.log("username-" + username)
-    try {
-        const user = await User.findOne({ username });
-        if (user) {
-            res.json(user);
-        } else {
-            res.status(404).json({ error: 'User not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+})
 
 module.exports = router;

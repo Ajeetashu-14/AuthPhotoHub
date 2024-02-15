@@ -3,40 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Info page</title>
 </head>
 
 <body>
-    <h1>user info</h1>
+    <h1>User info</h1>
     <h3 id="userInfo">
     </h3>
 
-    <script>
-        const searchParams = new URLSearchParams(window.location.search);
-        const username = searchParams.get('username');
-        const jwtToken = localStorage.getItem('jwtToken');
-        console.log("before fetch of info.html")
-        fetch(`http://localhost:3000/user?username=${username}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${jwtToken}`,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(function (response) {
-                console.log("after fetch of info.html and in response part")
-                response.json()
-                    .then(function (data) {
-                        console.log(data)
-                        const userData = document.getElementById('userInfo');
-                        userData.innerHTML = `<p>Username: ${data.username}</p>`;
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while fetching user information.');
-                    });
-            })
+    <h1>Images</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="image">Select Image:</label>
+        <input type="file" name="image" id="image" accept="image/*">
+        <br></br>
+        <label for="name">Image Name:</label>
+        <input type="text" name="name" id="name" required>
+        <br></br>
+        <button type="button" id="uploadButton">Upload Image</button>
+        <!-- <button type="button" onclick="myUploadFun()">Upload Image</button> -->
+    </form>
 
+    <script>
+        const jwtToken = localStorage.getItem('jwtToken');
+        console.log(jwtToken)
+        function decodeJWT(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            return JSON.parse(jsonPayload);
+        }
+        const payload = decodeJWT(jwtToken);
+        const value = JSON.stringify(payload, null, 2);
+        const responseObject = JSON.parse(value);
+        const username = responseObject.username;
+        document.getElementById('userInfo').innerHTML = `Username: ${username}`;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploadButton = document.getElementById('uploadButton');
+            uploadButton.addEventListener('click', myUploadFun);
+        });
+
+        function myUploadFun() {
+            console.log("Entering myUploadFun");
+
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            const token = localStorage.getItem('jwtToken');
+            const headers = new Headers({
+                'Authorization': `Bearer ${token}`
+            });
+
+            console.log("Before fetch of info.html");
+            fetch('http://localhost:3000/user/upload', {
+                method: 'POST',
+                headers: headers,
+                body: formData,
+            })
+                .then(function(response){
+                    if(response.status==400){
+                        alert("Successfully uploaded")
+                    }
+                    else{
+                        alert("Cannot upload")
+                    }
+                })
+
+        }
     </script>
 
 </body>
